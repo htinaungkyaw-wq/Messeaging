@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseChat - Modern Real-Time Messaging</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Supabase JS Client Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #818cf8;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-sidebar: #111827;
+            --bg-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --msg-sent: #4f46e5;
+            --msg-received: #1e293b;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+            --transition: all 0.25s ease-in-out;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #f8fafc;
+            --bg-hover: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --msg-sent: #6366f1;
+            --msg-received: #e2e8f0;
+        }
+
+        /* Reset & Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 250px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.error { border-left-color: #ef4444; }
+        .toast.success { border-left-color: #10b981; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Authentication Screens */
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--bg-card);
+            padding: 35px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .auth-header h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* App Layout */
+        #app-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-main);
+        }
+
+        /* Sidebar Navigation Icon Bar */
+        .nav-bar {
+            width: 65px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-item {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--bg-hover);
+            color: var(--primary);
+        }
+
+        /* Sidebar Conversation List & Search */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .conversations-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conv-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .conv-item:hover, .conv-item.active {
+            background: var(--bg-hover);
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .conv-info { flex: 1; overflow: hidden; }
+
+        .conv-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
+
+        .conv-time { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+
+        .conv-last-msg {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Chat Main Area */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-main);
+        }
+
+        .chat-header {
+            padding: 15px 25px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-user-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-bubble {
+            max-width: 65%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble.sent {
+            align-self: flex-end;
+        }
+
+        .message-bubble.received {
+            align-self: flex-start;
+        }
+
+        .msg-content {
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message-bubble.sent .msg-content {
+            background: var(--msg-sent);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-bubble.received .msg-content {
+            background: var(--msg-received);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .msg-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            align-self: flex-end;
+        }
+
+        .chat-input-area {
+            padding: 15px 25px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-input-area textarea {
+            flex: 1;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            color: var(--text-main);
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            height: 42px;
+        }
+
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .send-btn:hover { background: var(--primary-hover); }
+
+        /* User Profile View */
+        .profile-view {
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-avatar-upload {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px auto;
+        }
+
+        .profile-avatar-upload img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-upload label {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Empty & Mobile Views */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 15px;
+        }
+
+        .empty-state i { font-size: 3rem; color: var(--accent); }
+
+        .back-mobile-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar { display: none; }
+            .sidebar { width: 100%; }
+            .chat-main { display: none; width: 100%; }
+            .chat-main.active { display: flex; }
+            .sidebar.hidden { display: none; }
+            .back-mobile-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- VIEW 1: REGISTRATION PAGE -->
+    <div id="view-register" class="auth-container" style="display: none;">
+        <div class="auth-header">
+            <h1><i class="fa-solid fa-comments"></i> PulseChat</h1>
+            <p style="color: var(--text-muted);">Create your free account</p>
+        </div>
+        <form id="form-register">
+            <div class="form-group">
+                <label>Full Name</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="reg-name" placeholder="John Doe" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="reg-email" placeholder="john@example.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password (Min. 8 chars)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="reg-password" placeholder="••••••••" required>
+                    <i class="fa-solid fa-eye toggle-password" onclick="togglePass('reg-password', this)"></i>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="reg-confirm-password" placeholder="••••••••" required>
+                </div>
+            </div>
+            <button type="submit" class="btn">Register</button>
+        </form>
+        <div class="auth-footer">
+            Already have an account? <a href="#" onclick="showAuthView('login')">Sign In</a>
+        </div>
+    </div>
+
+    <!-- VIEW 2: LOGIN PAGE -->
+    <div id="view-login" class="auth-container" style="display: none;">
+        <div class="auth-header">
+            <h1><i class="fa-solid fa-comments"></i> PulseChat</h1>
+            <p style="color: var(--text-muted);">Welcome back! Please login</p>
+        </div>
+        <form id="form-login">
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="john@example.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                    <i class="fa-solid fa-eye toggle-password" onclick="togglePass('login-password', this)"></i>
+                </div>
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <div class="auth-footer">
+            Don't have an account? <a href="#" onclick="showAuthView('register')">Register</a>
+        </div>
+    </div>
+
+    <!-- VIEW 3: MAIN DASHBOARD -->
+    <div id="view-dashboard" id="app-layout" style="display: none; width: 100vw; height: 100vh;">
+        <!-- Left Navigation -->
+        <div class="nav-bar">
+            <div class="nav-brand"><i class="fa-solid fa-comments"></i></div>
+            <div class="nav-links">
+                <div class="nav-item active" onclick="switchTab('chats')" title="Chats"><i class="fa-solid fa-message"></i></div>
+                <div class="nav-item" onclick="switchTab('profile')" title="Profile"><i class="fa-solid fa-user"></i></div>
+                <div class="nav-item" onclick="toggleTheme()" title="Toggle Theme"><i class="fa-solid fa-moon"></i></div>
+            </div>
+            <div class="nav-item" onclick="handleLogout()" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></div>
+        </div>
+
+        <!-- Sidebar List / Search -->
+        <div class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="user-search-input" placeholder="Search by name or #Code..." oninput="handleSearch(this.value)">
+                </div>
+            </div>
+            <div class="conversations-list" id="conversations-list">
+                <!-- Dynamically Populated -->
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="chat-main" id="chat-main">
+            <!-- Dynamic Content (Empty State, Profile Edit, or Active Chat) -->
+            <div id="chat-window-content" style="height:100%; display:flex; flex-direction:column;">
+                <div class="empty-state">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <h3>Select or search a user to start chatting</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SUPABASE INITIALIZATION ---
+        const SUPABASE_URL = 'https://nornourdknwkumcbbsax.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_bb2VkR377m5Kf951IJpoBg_pRzm93W7';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // State Management
+        let currentUser = null;
+        let activeProfile = null;
+        let currentConversationId = null;
+        let activeChatRecipient = null;
+        let realtimeSubscription = null;
+
+        // --- 2. INITIALIZATION & AUTH CHECK ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                await loadUserProfile();
+                showDashboard();
+            } else {
+                showAuthView('login');
+            }
+
+            // Auth listener
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    activeProfile = null;
+                    showAuthView('login');
+                }
+            });
+        });
+
+        // --- 3. UI NOTIFICATIONS & HELPERS ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function togglePass(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', nextTheme);
+        }
+
+        function showAuthView(view) {
+            document.getElementById('view-register').style.display = view === 'register' ? 'block' : 'none';
+            document.getElementById('view-login').style.display = view === 'login' ? 'block' : 'none';
+            document.getElementById('view-dashboard').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('view-register').style.display = 'none';
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-dashboard').style.display = 'flex';
+            loadConversations();
+        }
+
+        // --- 4. AUTHENTICATION HANDLERS ---
+        document.getElementById('form-register').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirmPassword = document.getElementById('reg-confirm-password').value;
+
+            if (password.length < 8) return showToast('Password must be at least 8 characters long.', 'error');
+            if (password !== confirmPassword) return showToast('Passwords do not match.', 'error');
+
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { full_name: fullName } }
+            });
+
+            if (error) return showToast(error.message, 'error');
+            
+            showToast('Registration successful! Logging in...', 'success');
+            currentUser = data.user;
+            await loadUserProfile();
+            showDashboard();
+        });
+
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return showToast(error.message, 'error');
+
+            currentUser = data.user;
+            await loadUserProfile();
+            showDashboard();
+        });
+
+        async function handleLogout() {
+            if(realtimeSubscription) supabase.removeChannel(realtimeSubscription);
+            await supabase.auth.signOut();
+            showToast('Logged out successfully');
+        }
+
+        async function loadUserProfile() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            if (!error) activeProfile = data;
+        }
+
+        // --- 5. SEARCH & CONVERSATIONS LIST ---
+        async function loadConversations() {
+            const listContainer = document.getElementById('conversations-list');
+            listContainer.innerHTML = '';
+
+            const { data: members, error } = await supabase
+                .from('conversation_members')
+                .select('conversation_id, conversations(updated_at)')
+                .eq('user_id', currentUser.id);
+
+            if (error || !members.length) {
+                listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--text-muted);">No conversations yet. Search users to start chatting!</div>`;
+                return;
+            }
+
+            for (const item of members) {
+                const convId = item.conversation_id;
+                // Fetch recipient info
+                const { data: partnerMember } = await supabase
+                    .from('conversation_members')
+                    .select('profiles(*)')
+                    .eq('conversation_id', convId)
+                    .ne('user_id', currentUser.id)
+                    .single();
+
+                // Fetch latest message
+                const { data: lastMsg } = await supabase
+                    .from('messages')
+                    .select('content, created_at')
+                    .eq('conversation_id', convId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (partnerMember) {
+                    const profile = partnerMember.profiles;
+                    const convElement = document.createElement('div');
+                    convElement.className = `conv-item ${currentConversationId === convId ? 'active' : ''}`;
+                    convElement.onclick = () => openChat(convId, profile);
+
+                    const avatarContent = profile.avatar_url 
+                        ? `<img src="${profile.avatar_url}" class="avatar">` 
+                        : `<div class="avatar">${profile.full_name[0].toUpperCase()}</div>`;
+
+                    convElement.innerHTML = `
+                        ${avatarContent}
+                        <div class="conv-info">
+                            <div class="conv-name">
+                                <span>${profile.full_name}</span>
+                                <span class="conv-time">${lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                            </div>
+                            <div class="conv-last-msg">${lastMsg ? lastMsg.content : 'Started a conversation'}</div>
+                        </div>
+                    `;
+                    listContainer.appendChild(convElement);
+                }
+            }
+        }
+
+        async function handleSearch(query) {
+            if (!query.trim()) return loadConversations();
+
+            const listContainer = document.getElementById('conversations-list');
+            listContainer.innerHTML = '';
+
+            const { data: users, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .neq('id', currentUser.id)
+                .or(`full_name.ilike.%${query}%,user_code.ilike.%${query}%`);
+
+            if (error || !users.length) {
+                listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--text-muted);">No users found</div>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.className = 'conv-item';
+                userElement.onclick = () => startOrOpenConversation(user);
+
+                const avatarContent = user.avatar_url 
+                    ? `<img src="${user.avatar_url}" class="avatar">` 
+                    : `<div class="avatar">${user.full_name[0].toUpperCase()}</div>`;
+
+                userElement.innerHTML = `
+                    ${avatarContent}
+                    <div class="conv-info">
+                        <div class="conv-name">${user.full_name}</div>
+                        <div class="conv-last-msg">${user.user_code}</div>
+                    </div>
+                `;
+                listContainer.appendChild(userElement);
+            });
+        }
+
+        // --- 6. REAL-TIME CHAT ENGINE ---
+        async function startOrOpenConversation(recipientProfile) {
+            // Check existing conversation
+            const { data: myConvs } = await supabase
+                .from('conversation_members')
+                .select('conversation_id')
+                .eq('user_id', currentUser.id);
+
+            const convIds = myConvs ? myConvs.map(c => c.conversation_id) : [];
+
+            if (convIds.length > 0) {
+                const { data: existing } = await supabase
+                    .from('conversation_members')
+                    .select('conversation_id')
+                    .eq('user_id', recipientProfile.id)
+                    .in('conversation_id', convIds)
+                    .single();
+
+                if (existing) {
+                    return openChat(existing.conversation_id, recipientProfile);
+                }
+            }
+
+            // Create new conversation
+            const { data: newConv, error: convErr } = await supabase
+                .from('conversations')
+                .insert({})
+                .select()
+                .single();
+
+            if (convErr) return showToast('Error starting chat', 'error');
+
+            await supabase.from('conversation_members').insert([
+                { conversation_id: newConv.id, user_id: currentUser.id },
+                { conversation_id: newConv.id, user_id: recipientProfile.id }
+            ]);
+
+            openChat(newConv.id, recipientProfile);
+        }
+
+        async function openChat(conversationId, recipientProfile) {
+            currentConversationId = conversationId;
+            activeChatRecipient = recipientProfile;
+
+            // Mobile view handling
+            document.getElementById('app-sidebar').classList.add('hidden');
+            document.getElementById('chat-main').classList.add('active');
+
+            const chatWindow = document.getElementById('chat-window-content');
+            
+            const avatarContent = recipientProfile.avatar_url 
+                ? `<img src="${recipientProfile.avatar_url}" class="avatar">` 
+                : `<div class="avatar">${recipientProfile.full_name[0].toUpperCase()}</div>`;
+
+            chatWindow.innerHTML = `
+                <div class="chat-header">
+                    <div class="chat-user-details">
+                        <button class="back-mobile-btn" onclick="closeMobileChat()"><i class="fa-solid fa-arrow-left"></i></button>
+                        ${avatarContent}
+                        <div>
+                            <div style="font-weight:700;">${recipientProfile.full_name}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${recipientProfile.user_code}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="messages-container" id="messages-container"></div>
+                <div class="chat-input-area">
+                    <textarea id="msg-input" placeholder="Type a message..." onkeydown="handleKeyPress(event)"></textarea>
+                    <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            `;
+
+            await loadMessages(conversationId);
+            subscribeToMessages(conversationId);
+            loadConversations();
+        }
+
+        function closeMobileChat() {
+            document.getElementById('app-sidebar').classList.remove('hidden');
+            document.getElementById('chat-main').classList.remove('active');
+        }
+
+        async function loadMessages(conversationId) {
+            const container = document.getElementById('messages-container');
+            const { data: messages, error } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('conversation_id', conversationId)
+                .order('created_at', { ascending: true });
+
+            if (!error && messages) {
+                container.innerHTML = '';
+                messages.forEach(renderMessage);
+                scrollToBottom();
+            }
+        }
+
+        function renderMessage(msg) {
+            const container = document.getElementById('messages-container');
+            if (!container) return;
+
+            const isSent = msg.sender_id === currentUser.id;
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+            
+            const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            bubble.innerHTML = `
+                <div class="msg-content">${msg.content}</div>
+                <div class="msg-meta">${timeStr}</div>
+            `;
+            container.appendChild(bubble);
+            scrollToBottom();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const content = input.value.trim();
+
+            if (!content || !currentConversationId) return;
+
+            input.value = '';
+
+            const { error } = await supabase.from('messages').insert({
+                conversation_id: currentConversationId,
+                sender_id: currentUser.id,
+                content: content
+            });
+
+            if (error) showToast('Failed to send message', 'error');
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function subscribeToMessages(conversationId) {
+            if (realtimeSubscription) supabase.removeChannel(realtimeSubscription);
+
+            realtimeSubscription = supabase
+                .channel(`chat:${conversationId}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `conversation_id=eq.${conversationId}`
+                }, payload => {
+                    renderMessage(payload.new);
+                    loadConversations();
+                })
+                .subscribe();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            if (container) container.scrollTop = container.scrollHeight;
+        }
+
+        // --- 7. USER PROFILE MANAGEMENT ---
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (tab === 'profile') {
+                renderProfileView();
+            } else {
+                showDashboard();
+            }
+        }
+
+        function renderProfileView() {
+            const chatWindow = document.getElementById('chat-window-content');
+            
+            const avatarContent = activeProfile.avatar_url 
+                ? `<img src="${activeProfile.avatar_url}" id="profile-img-preview">` 
+                : `<div class="avatar" style="width:100px; height:100px; font-size:2.5rem;" id="profile-avatar-fallback">${activeProfile.full_name[0].toUpperCase()}</div>`;
+
+            chatWindow.innerHTML = `
+                <div class="profile-view">
+                    <h2 style="margin-bottom:20px; text-align:center;">Your Profile</h2>
+                    <div class="profile-avatar-upload">
+                        ${avatarContent}
+                        <label for="avatar-input"><i class="fa-solid fa-camera" style="color:white;"></i></label>
+                        <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+                    </div>
+                    <form onsubmit="updateProfile(event)">
+                        <div class="form-group">
+                            <label>User ID (Permanent)</label>
+                            <input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile.user_code}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="edit-name" class="input-wrapper input" style="width:100%; padding:10px; background:var(--bg-main); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px;" value="${activeProfile.full_name}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile.email}" disabled>
+                        </div>
+                        <button type="submit" class="btn" style="margin-top:10px;">Save Profile</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        async function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${currentUser.id}/avatar.${fileExt}`;
+
+            showToast('Uploading image...', 'info');
+
+            const { error: uploadErr } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadErr) return showToast('Upload failed: ' + uploadErr.message, 'error');
+
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+            const avatarUrl = data.publicUrl;
+
+            const { error: updateErr } = await supabase
+                .from('profiles')
+                .update({ avatar_url: avatarUrl })
+                .eq('id', currentUser.id);
+
+            if (updateErr) return showToast('Failed to update avatar URL', 'error');
+
+            activeProfile.avatar_url = avatarUrl;
+            showToast('Profile photo updated!', 'success');
+            renderProfileView();
+        }
+
+        async function updateProfile(e) {
+            e.preventDefault();
+            const newName = document.getElementById('edit-name').value.trim();
+            if (!newName) return;
+
+            const { error } = await supabase
+                .from('profiles')
+                .update({ full_name: newName })
+                .eq('id', currentUser.id);
+
+            if (error) return showToast(error.message, 'error');
+
+            activeProfile.full_name = newName;
+            showToast('Profile updated successfully!', 'success');
+        }
+    </script>
+</body>
+</html>
