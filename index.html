@@ -17,7 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* CSS Variables */
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
@@ -33,7 +32,6 @@
             --msg-received: #1e293b;
             --radius-lg: 16px;
             --radius-md: 10px;
-            --radius-sm: 6px;
             --transition: all 0.25s ease-in-out;
         }
 
@@ -49,7 +47,6 @@
             --msg-received: #e2e8f0;
         }
 
-        /* Reset & Base Styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -67,7 +64,6 @@
             justify-content: center;
         }
 
-        /* Toast Notifications */
         #toast-container {
             position: fixed;
             top: 20px;
@@ -89,18 +85,11 @@
             align-items: center;
             gap: 12px;
             min-width: 250px;
-            animation: slideIn 0.3s ease;
         }
 
         .toast.error { border-left-color: #ef4444; }
         .toast.success { border-left-color: #10b981; }
 
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Authentication Screens */
         .auth-container {
             width: 100%;
             max-width: 440px;
@@ -157,11 +146,6 @@
             border-radius: var(--radius-md);
             color: var(--text-main);
             outline: none;
-            transition: var(--transition);
-        }
-
-        .input-wrapper input:focus {
-            border-color: var(--primary);
         }
 
         .toggle-password {
@@ -201,14 +185,13 @@
         }
 
         /* App Layout */
-        #app-layout {
-            display: flex;
+        #view-dashboard {
+            display: none;
             width: 100vw;
             height: 100vh;
             background: var(--bg-main);
         }
 
-        /* Sidebar Navigation Icon Bar */
         .nav-bar {
             width: 65px;
             background: var(--bg-sidebar);
@@ -220,16 +203,8 @@
             justify-content: space-between;
         }
 
-        .nav-brand {
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .nav-brand { font-size: 1.5rem; color: var(--primary); }
+        .nav-links { display: flex; flex-direction: column; gap: 20px; }
 
         .nav-item {
             width: 42px;
@@ -248,7 +223,6 @@
             color: var(--primary);
         }
 
-        /* Sidebar Conversation List & Search */
         .sidebar {
             width: 320px;
             background: var(--bg-sidebar);
@@ -262,10 +236,7 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        .search-box {
-            position: relative;
-        }
-
+        .search-box { position: relative; }
         .search-box input {
             width: 100%;
             padding: 10px 12px 10px 36px;
@@ -275,7 +246,6 @@
             color: var(--text-main);
             outline: none;
         }
-
         .search-box i {
             position: absolute;
             left: 12px;
@@ -284,10 +254,7 @@
             color: var(--text-muted);
         }
 
-        .conversations-list {
-            flex: 1;
-            overflow-y: auto;
-        }
+        .conversations-list { flex: 1; overflow-y: auto; }
 
         .conv-item {
             display: flex;
@@ -296,12 +263,8 @@
             gap: 12px;
             cursor: pointer;
             border-bottom: 1px solid var(--border-color);
-            transition: var(--transition);
         }
-
-        .conv-item:hover, .conv-item.active {
-            background: var(--bg-hover);
-        }
+        .conv-item:hover, .conv-item.active { background: var(--bg-hover); }
 
         .avatar {
             width: 44px;
@@ -318,26 +281,10 @@
         }
 
         .conv-info { flex: 1; overflow: hidden; }
+        .conv-name { font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between; font-size: 0.95rem; }
+        .conv-time { font-size: 0.75rem; color: var(--text-muted); }
+        .conv-last-msg { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .conv-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.95rem;
-        }
-
-        .conv-time { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
-
-        .conv-last-msg {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Chat Main Area */
         .chat-main {
             flex: 1;
             display: flex;
@@ -351,64 +298,19 @@
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            justify-content: space-between;
         }
 
-        .chat-user-details {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .chat-user-details { display: flex; align-items: center; gap: 12px; }
+        .messages-container { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .messages-container {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .message-bubble { max-width: 65%; display: flex; flex-direction: column; }
+        .message-bubble.sent { align-self: flex-end; }
+        .message-bubble.received { align-self: flex-start; }
 
-        .message-bubble {
-            max-width: 65%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-bubble.sent {
-            align-self: flex-end;
-        }
-
-        .message-bubble.received {
-            align-self: flex-start;
-        }
-
-        .msg-content {
-            padding: 12px 16px;
-            border-radius: var(--radius-lg);
-            font-size: 0.95rem;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .message-bubble.sent .msg-content {
-            background: var(--msg-sent);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message-bubble.received .msg-content {
-            background: var(--msg-received);
-            color: var(--text-main);
-            border-bottom-left-radius: 4px;
-        }
-
-        .msg-meta {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            align-self: flex-end;
-        }
+        .msg-content { padding: 12px 16px; border-radius: var(--radius-lg); font-size: 0.95rem; line-height: 1.4; word-break: break-word; }
+        .message-bubble.sent .msg-content { background: var(--msg-sent); color: white; border-bottom-right-radius: 4px; }
+        .message-bubble.received .msg-content { background: var(--msg-received); color: var(--text-main); border-bottom-left-radius: 4px; }
+        .msg-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; align-self: flex-end; }
 
         .chat-input-area {
             padding: 15px 25px;
@@ -428,86 +330,23 @@
             color: var(--text-main);
             outline: none;
             resize: none;
-            max-height: 100px;
             height: 42px;
         }
 
         .send-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: var(--primary);
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
+            width: 42px; height: 42px; border-radius: 50%; background: var(--primary);
+            border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        .send-btn:hover { background: var(--primary-hover); }
+        .profile-view { padding: 30px; width: 100%; max-width: 600px; margin: auto; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
+        .profile-avatar-upload { position: relative; width: 100px; height: 100px; margin: 0 auto 20px auto; }
+        .profile-avatar-upload img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .profile-avatar-upload label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* User Profile View */
-        .profile-view {
-            padding: 30px;
-            width: 100%;
-            max-width: 600px;
-            margin: auto;
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-        }
-
-        .profile-avatar-upload {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 20px auto;
-        }
-
-        .profile-avatar-upload img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .profile-avatar-upload label {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: var(--primary);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        /* Empty & Mobile Views */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-muted);
-            gap: 15px;
-        }
-
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); gap: 15px; }
         .empty-state i { font-size: 3rem; color: var(--accent); }
 
-        .back-mobile-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
+        .back-mobile-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.2rem; cursor: pointer; }
 
         @media (max-width: 768px) {
             .nav-bar { display: none; }
@@ -521,10 +360,9 @@
 </head>
 <body>
 
-    <!-- Toast Notification Container -->
     <div id="toast-container"></div>
 
-    <!-- VIEW 1: REGISTRATION PAGE -->
+    <!-- VIEW 1: REGISTRATION -->
     <div id="view-register" class="auth-container" style="display: none;">
         <div class="auth-header">
             <h1><i class="fa-solid fa-comments"></i> PulseChat</h1>
@@ -567,7 +405,7 @@
         </div>
     </div>
 
-    <!-- VIEW 2: LOGIN PAGE -->
+    <!-- VIEW 2: LOGIN -->
     <div id="view-login" class="auth-container" style="display: none;">
         <div class="auth-header">
             <h1><i class="fa-solid fa-comments"></i> PulseChat</h1>
@@ -596,9 +434,8 @@
         </div>
     </div>
 
-    <!-- VIEW 3: MAIN DASHBOARD -->
-    <div id="view-dashboard" id="app-layout" style="display: none; width: 100vw; height: 100vh;">
-        <!-- Left Navigation -->
+    <!-- VIEW 3: DASHBOARD -->
+    <div id="view-dashboard" style="display: none; width: 100vw; height: 100vh;">
         <div class="nav-bar">
             <div class="nav-brand"><i class="fa-solid fa-comments"></i></div>
             <div class="nav-links">
@@ -609,7 +446,6 @@
             <div class="nav-item" onclick="handleLogout()" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></div>
         </div>
 
-        <!-- Sidebar List / Search -->
         <div class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
                 <div class="search-box">
@@ -617,14 +453,10 @@
                     <input type="text" id="user-search-input" placeholder="Search by name or #Code..." oninput="handleSearch(this.value)">
                 </div>
             </div>
-            <div class="conversations-list" id="conversations-list">
-                <!-- Dynamically Populated -->
-            </div>
+            <div class="conversations-list" id="conversations-list"></div>
         </div>
 
-        <!-- Main Workspace -->
         <div class="chat-main" id="chat-main">
-            <!-- Dynamic Content (Empty State, Profile Edit, or Active Chat) -->
             <div id="chat-window-content" style="height:100%; display:flex; flex-direction:column;">
                 <div class="empty-state">
                     <i class="fa-solid fa-paper-plane"></i>
@@ -635,40 +467,50 @@
     </div>
 
     <script>
-        // --- 1. SUPABASE INITIALIZATION ---
         const SUPABASE_URL = 'https://nornourdknwkumcbbsax.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_bb2VkR377m5Kf951IJpoBg_pRzm93W7';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Safely initialize Supabase client onto a distinct variable name
+        const supabaseClient = (window.supabase && window.supabase.createClient) 
+            ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+            : null;
 
-        // State Management
         let currentUser = null;
         let activeProfile = null;
         let currentConversationId = null;
         let activeChatRecipient = null;
         let realtimeSubscription = null;
 
-        // --- 2. INITIALIZATION & AUTH CHECK ---
         window.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                await loadUserProfile();
-                showDashboard();
-            } else {
+            if (!supabaseClient) {
+                showToast("Failed to initialize Supabase. Check network/configuration.", "error");
                 showAuthView('login');
+                return;
             }
 
-            // Auth listener
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    activeProfile = null;
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    await loadUserProfile();
+                    showDashboard();
+                } else {
                     showAuthView('login');
                 }
-            });
+
+                supabaseClient.auth.onAuthStateChange((event) => {
+                    if (event === 'SIGNED_OUT') {
+                        currentUser = null;
+                        activeProfile = null;
+                        showAuthView('login');
+                    }
+                });
+            } catch (e) {
+                console.error("Auth session load error:", e);
+                showAuthView('login');
+            }
         });
 
-        // --- 3. UI NOTIFICATIONS & HELPERS ---
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -691,8 +533,7 @@
 
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
-            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', nextTheme);
+            document.documentElement.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
         }
 
         function showAuthView(view) {
@@ -708,7 +549,6 @@
             loadConversations();
         }
 
-        // --- 4. AUTHENTICATION HANDLERS ---
         document.getElementById('form-register').addEventListener('submit', async (e) => {
             e.preventDefault();
             const fullName = document.getElementById('reg-name').value.trim();
@@ -719,10 +559,8 @@
             if (password.length < 8) return showToast('Password must be at least 8 characters long.', 'error');
             if (password !== confirmPassword) return showToast('Passwords do not match.', 'error');
 
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: { data: { full_name: fullName } }
+            const { data, error } = await supabaseClient.auth.signUp({
+                email, password, options: { data: { full_name: fullName } }
             });
 
             if (error) return showToast(error.message, 'error');
@@ -738,7 +576,7 @@
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) return showToast(error.message, 'error');
 
             currentUser = data.user;
@@ -747,53 +585,30 @@
         });
 
         async function handleLogout() {
-            if(realtimeSubscription) supabase.removeChannel(realtimeSubscription);
-            await supabase.auth.signOut();
+            if(realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
+            await supabaseClient.auth.signOut();
             showToast('Logged out successfully');
         }
 
         async function loadUserProfile() {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', currentUser.id)
-                .single();
-            if (!error) activeProfile = data;
+            const { data } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
+            if (data) activeProfile = data;
         }
 
-        // --- 5. SEARCH & CONVERSATIONS LIST ---
         async function loadConversations() {
             const listContainer = document.getElementById('conversations-list');
             listContainer.innerHTML = '';
 
-            const { data: members, error } = await supabase
-                .from('conversation_members')
-                .select('conversation_id, conversations(updated_at)')
-                .eq('user_id', currentUser.id);
-
-            if (error || !members.length) {
-                listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--text-muted);">No conversations yet. Search users to start chatting!</div>`;
+            const { data: members } = await supabaseClient.from('conversation_members').select('conversation_id').eq('user_id', currentUser.id);
+            if (!members || !members.length) {
+                listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--text-muted);">No conversations yet.</div>`;
                 return;
             }
 
             for (const item of members) {
                 const convId = item.conversation_id;
-                // Fetch recipient info
-                const { data: partnerMember } = await supabase
-                    .from('conversation_members')
-                    .select('profiles(*)')
-                    .eq('conversation_id', convId)
-                    .ne('user_id', currentUser.id)
-                    .single();
-
-                // Fetch latest message
-                const { data: lastMsg } = await supabase
-                    .from('messages')
-                    .select('content, created_at')
-                    .eq('conversation_id', convId)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
+                const { data: partnerMember } = await supabaseClient.from('conversation_members').select('profiles(*)').eq('conversation_id', convId).ne('user_id', currentUser.id).single();
+                const { data: lastMsg } = await supabaseClient.from('messages').select('content, created_at').eq('conversation_id', convId).order('created_at', { ascending: false }).limit(1).single();
 
                 if (partnerMember) {
                     const profile = partnerMember.profiles;
@@ -801,17 +616,12 @@
                     convElement.className = `conv-item ${currentConversationId === convId ? 'active' : ''}`;
                     convElement.onclick = () => openChat(convId, profile);
 
-                    const avatarContent = profile.avatar_url 
-                        ? `<img src="${profile.avatar_url}" class="avatar">` 
-                        : `<div class="avatar">${profile.full_name[0].toUpperCase()}</div>`;
+                    const avatarContent = profile.avatar_url ? `<img src="${profile.avatar_url}" class="avatar">` : `<div class="avatar">${profile.full_name[0].toUpperCase()}</div>`;
 
                     convElement.innerHTML = `
                         ${avatarContent}
                         <div class="conv-info">
-                            <div class="conv-name">
-                                <span>${profile.full_name}</span>
-                                <span class="conv-time">${lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
-                            </div>
+                            <div class="conv-name"><span>${profile.full_name}</span><span class="conv-time">${lastMsg ? new Date(lastMsg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span></div>
                             <div class="conv-last-msg">${lastMsg ? lastMsg.content : 'Started a conversation'}</div>
                         </div>
                     `;
@@ -822,17 +632,11 @@
 
         async function handleSearch(query) {
             if (!query.trim()) return loadConversations();
-
             const listContainer = document.getElementById('conversations-list');
             listContainer.innerHTML = '';
 
-            const { data: users, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .neq('id', currentUser.id)
-                .or(`full_name.ilike.%${query}%,user_code.ilike.%${query}%`);
-
-            if (error || !users.length) {
+            const { data: users } = await supabaseClient.from('profiles').select('*').neq('id', currentUser.id).or(`full_name.ilike.%${query}%,user_code.ilike.%${query}%`);
+            if (!users || !users.length) {
                 listContainer.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--text-muted);">No users found</div>`;
                 return;
             }
@@ -841,11 +645,7 @@
                 const userElement = document.createElement('div');
                 userElement.className = 'conv-item';
                 userElement.onclick = () => startOrOpenConversation(user);
-
-                const avatarContent = user.avatar_url 
-                    ? `<img src="${user.avatar_url}" class="avatar">` 
-                    : `<div class="avatar">${user.full_name[0].toUpperCase()}</div>`;
-
+                const avatarContent = user.avatar_url ? `<img src="${user.avatar_url}" class="avatar">` : `<div class="avatar">${user.full_name[0].toUpperCase()}</div>`;
                 userElement.innerHTML = `
                     ${avatarContent}
                     <div class="conv-info">
@@ -857,59 +657,31 @@
             });
         }
 
-        // --- 6. REAL-TIME CHAT ENGINE ---
         async function startOrOpenConversation(recipientProfile) {
-            // Check existing conversation
-            const { data: myConvs } = await supabase
-                .from('conversation_members')
-                .select('conversation_id')
-                .eq('user_id', currentUser.id);
-
+            const { data: myConvs } = await supabaseClient.from('conversation_members').select('conversation_id').eq('user_id', currentUser.id);
             const convIds = myConvs ? myConvs.map(c => c.conversation_id) : [];
 
             if (convIds.length > 0) {
-                const { data: existing } = await supabase
-                    .from('conversation_members')
-                    .select('conversation_id')
-                    .eq('user_id', recipientProfile.id)
-                    .in('conversation_id', convIds)
-                    .single();
-
-                if (existing) {
-                    return openChat(existing.conversation_id, recipientProfile);
-                }
+                const { data: existing } = await supabaseClient.from('conversation_members').select('conversation_id').eq('user_id', recipientProfile.id).in('conversation_id', convIds).single();
+                if (existing) return openChat(existing.conversation_id, recipientProfile);
             }
 
-            // Create new conversation
-            const { data: newConv, error: convErr } = await supabase
-                .from('conversations')
-                .insert({})
-                .select()
-                .single();
-
-            if (convErr) return showToast('Error starting chat', 'error');
-
-            await supabase.from('conversation_members').insert([
+            const { data: newConv } = await supabaseClient.from('conversations').insert({}).select().single();
+            await supabaseClient.from('conversation_members').insert([
                 { conversation_id: newConv.id, user_id: currentUser.id },
                 { conversation_id: newConv.id, user_id: recipientProfile.id }
             ]);
-
             openChat(newConv.id, recipientProfile);
         }
 
         async function openChat(conversationId, recipientProfile) {
             currentConversationId = conversationId;
             activeChatRecipient = recipientProfile;
-
-            // Mobile view handling
             document.getElementById('app-sidebar').classList.add('hidden');
             document.getElementById('chat-main').classList.add('active');
 
             const chatWindow = document.getElementById('chat-window-content');
-            
-            const avatarContent = recipientProfile.avatar_url 
-                ? `<img src="${recipientProfile.avatar_url}" class="avatar">` 
-                : `<div class="avatar">${recipientProfile.full_name[0].toUpperCase()}</div>`;
+            const avatarContent = recipientProfile.avatar_url ? `<img src="${recipientProfile.avatar_url}" class="avatar">` : `<div class="avatar">${recipientProfile.full_name[0].toUpperCase()}</div>`;
 
             chatWindow.innerHTML = `
                 <div class="chat-header">
@@ -928,7 +700,6 @@
                     <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             `;
-
             await loadMessages(conversationId);
             subscribeToMessages(conversationId);
             loadConversations();
@@ -941,13 +712,8 @@
 
         async function loadMessages(conversationId) {
             const container = document.getElementById('messages-container');
-            const { data: messages, error } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('conversation_id', conversationId)
-                .order('created_at', { ascending: true });
-
-            if (!error && messages) {
+            const { data: messages } = await supabaseClient.from('messages').select('*').eq('conversation_id', conversationId).order('created_at', { ascending: true });
+            if (messages) {
                 container.innerHTML = '';
                 messages.forEach(renderMessage);
                 scrollToBottom();
@@ -957,17 +723,11 @@
         function renderMessage(msg) {
             const container = document.getElementById('messages-container');
             if (!container) return;
-
             const isSent = msg.sender_id === currentUser.id;
             const bubble = document.createElement('div');
             bubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
-            
             const timeStr = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            bubble.innerHTML = `
-                <div class="msg-content">${msg.content}</div>
-                <div class="msg-meta">${timeStr}</div>
-            `;
+            bubble.innerHTML = `<div class="msg-content">${msg.content}</div><div class="msg-meta">${timeStr}</div>`;
             container.appendChild(bubble);
             scrollToBottom();
         }
@@ -975,42 +735,22 @@
         async function sendMessage() {
             const input = document.getElementById('msg-input');
             const content = input.value.trim();
-
             if (!content || !currentConversationId) return;
-
             input.value = '';
-
-            const { error } = await supabase.from('messages').insert({
-                conversation_id: currentConversationId,
-                sender_id: currentUser.id,
-                content: content
-            });
-
-            if (error) showToast('Failed to send message', 'error');
+            await supabaseClient.from('messages').insert({ conversation_id: currentConversationId, sender_id: currentUser.id, content });
         }
 
         function handleKeyPress(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
         }
 
         function subscribeToMessages(conversationId) {
-            if (realtimeSubscription) supabase.removeChannel(realtimeSubscription);
-
-            realtimeSubscription = supabase
-                .channel(`chat:${conversationId}`)
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `conversation_id=eq.${conversationId}`
-                }, payload => {
+            if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
+            realtimeSubscription = supabaseClient.channel(`chat:${conversationId}`)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, payload => {
                     renderMessage(payload.new);
                     loadConversations();
-                })
-                .subscribe();
+                }).subscribe();
         }
 
         function scrollToBottom() {
@@ -1018,25 +758,17 @@
             if (container) container.scrollTop = container.scrollHeight;
         }
 
-        // --- 7. USER PROFILE MANAGEMENT ---
         function switchTab(tab) {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if (tab === 'profile') {
-                renderProfileView();
-            } else {
-                showDashboard();
-            }
+            if (tab === 'profile') renderProfileView();
+            else showDashboard();
         }
 
         function renderProfileView() {
             const chatWindow = document.getElementById('chat-window-content');
-            
-            const avatarContent = activeProfile.avatar_url 
-                ? `<img src="${activeProfile.avatar_url}" id="profile-img-preview">` 
-                : `<div class="avatar" style="width:100px; height:100px; font-size:2.5rem;" id="profile-avatar-fallback">${activeProfile.full_name[0].toUpperCase()}</div>`;
-
+            const avatarContent = activeProfile && activeProfile.avatar_url ? `<img src="${activeProfile.avatar_url}">` : `<div class="avatar" style="width:100px; height:100px; font-size:2.5rem;">${activeProfile && activeProfile.full_name ? activeProfile.full_name[0].toUpperCase() : 'U'}</div>`;
             chatWindow.innerHTML = `
-                <div class="profile-view">
+                <div class="profile-view" style="margin: auto;">
                     <h2 style="margin-bottom:20px; text-align:center;">Your Profile</h2>
                     <div class="profile-avatar-upload">
                         ${avatarContent}
@@ -1044,18 +776,9 @@
                         <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
                     </div>
                     <form onsubmit="updateProfile(event)">
-                        <div class="form-group">
-                            <label>User ID (Permanent)</label>
-                            <input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile.user_code}" disabled>
-                        </div>
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="edit-name" class="input-wrapper input" style="width:100%; padding:10px; background:var(--bg-main); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px;" value="${activeProfile.full_name}" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile.email}" disabled>
-                        </div>
+                        <div class="form-group"><label>User ID</label><input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile ? activeProfile.user_code : ''}" disabled></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="edit-name" class="input-wrapper input" style="width:100%; padding:10px; background:var(--bg-main); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px;" value="${activeProfile ? activeProfile.full_name : ''}" required></div>
+                        <div class="form-group"><label>Email Address</label><input type="text" class="btn" style="background:var(--bg-main); text-align:left; cursor:default;" value="${activeProfile ? activeProfile.email : ''}" disabled></div>
                         <button type="submit" class="btn" style="margin-top:10px;">Save Profile</button>
                     </form>
                 </div>
@@ -1065,29 +788,13 @@
         async function handleAvatarUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            const fileExt = file.name.split('.').pop();
-            const filePath = `${currentUser.id}/avatar.${fileExt}`;
-
+            const filePath = `${currentUser.id}/avatar.${file.name.split('.').pop()}`;
             showToast('Uploading image...', 'info');
-
-            const { error: uploadErr } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file, { upsert: true });
-
+            const { error: uploadErr } = await supabaseClient.storage.from('avatars').upload(filePath, file, { upsert: true });
             if (uploadErr) return showToast('Upload failed: ' + uploadErr.message, 'error');
-
-            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-            const avatarUrl = data.publicUrl;
-
-            const { error: updateErr } = await supabase
-                .from('profiles')
-                .update({ avatar_url: avatarUrl })
-                .eq('id', currentUser.id);
-
-            if (updateErr) return showToast('Failed to update avatar URL', 'error');
-
-            activeProfile.avatar_url = avatarUrl;
+            const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+            await supabaseClient.from('profiles').update({ avatar_url: data.publicUrl }).eq('id', currentUser.id);
+            activeProfile.avatar_url = data.publicUrl;
             showToast('Profile photo updated!', 'success');
             renderProfileView();
         }
@@ -1096,14 +803,7 @@
             e.preventDefault();
             const newName = document.getElementById('edit-name').value.trim();
             if (!newName) return;
-
-            const { error } = await supabase
-                .from('profiles')
-                .update({ full_name: newName })
-                .eq('id', currentUser.id);
-
-            if (error) return showToast(error.message, 'error');
-
+            await supabaseClient.from('profiles').update({ full_name: newName }).eq('id', currentUser.id);
             activeProfile.full_name = newName;
             showToast('Profile updated successfully!', 'success');
         }
